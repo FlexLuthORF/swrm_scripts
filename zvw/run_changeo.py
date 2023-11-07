@@ -10,12 +10,12 @@ def changeo(sample_info, outdir):
     os.makedirs(sample_output_dir, exist_ok=True)
     log_dir = os.path.join(sample_output_dir, "logs")
     os.makedirs(log_dir, exist_ok=True)
-    changeo_path= 
     
+
     r_script_command = [
         "Rscript", 
-        "path_to_Rscript", 
-        #r1_gz_path
+        "/home/zmvanw01/git_repos/swrm_scripts/zvw/defineclones.R", 
+        sample_output_dir
     ]
     
     # Run R script
@@ -26,7 +26,7 @@ def changeo(sample_info, outdir):
     create_germlines_command = [
         "CreateGermlines.py", 
         "-d", os.path.join(sample_output_dir, "changeo", "output_file_from_Rscript.tsv"), 
-        "-r", "~/share/germlines/imgt/human/vdj", 
+        "-r", "/home/zmvanw01/share/germlines/imgt/human/vdj", 
         "-g", "dmask", 
         "--format", "airr", 
         "--cloned"
@@ -50,4 +50,4 @@ if __name__ == '__main__':
 
     sample_info_list = read_sample_file(args.file)
     with Pool() as pool:
-        pool.starmap(process_sample, [(info, args.outdir) for info in sample_info_list])
+        pool.starmap(changeo, [(info, args.outdir) for info in sample_info_list])

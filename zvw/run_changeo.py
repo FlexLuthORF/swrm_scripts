@@ -7,15 +7,16 @@ import subprocess
 def changeo(sample_info, outdir):
     sample_id, r1_gz_path = sample_info
     sample_output_dir = os.path.join(outdir, sample_id)
+    sample_changeo_db = os.path.join(sample_output_dir,"S5_db-pass.tsv")
     os.makedirs(sample_output_dir, exist_ok=True)
     log_dir = os.path.join(sample_output_dir, "logs")
     os.makedirs(log_dir, exist_ok=True)
-    
+    print(sample_changeo_db)
 
     r_script_command = [
         "Rscript", 
         "/home/zmvanw01/git_repos/swrm_scripts/zvw/defineclones.R", 
-        sample_output_dir
+        sample_changeo_db
     ]
     
     # Run R script

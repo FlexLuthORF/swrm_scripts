@@ -19,11 +19,10 @@ def changeo(sample_info, outdir):
         sample_changeo_db
     ]
     
-    # Run R script
+    
     subprocess.run(r_script_command, check=True)
     
-    # After Rscript has run, execute the CreateGermlines.py command
-    # Assuming your R script outputs the necessary file in the correct directory.
+    
     create_germlines_command = [
         "CreateGermlines.py", 
         "-d", os.path.join(sample_output_dir, "changeo", "output_file_from_Rscript.tsv"), 
@@ -33,7 +32,7 @@ def changeo(sample_info, outdir):
         "--cloned"
     ]
     
-    # Run CreateGermlines.py
+    
     subprocess.run(create_germlines_command, check=True)
 
 

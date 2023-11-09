@@ -1,4 +1,4 @@
-library(shazam)
+suppressPackageStartupMessages(library(shazam))
 
 args <- commandArgs(trailingOnly = TRUE)
 inputFileName <- args[1]  # Expecting the full path to the .tsv file as input
@@ -14,4 +14,4 @@ threshold <- output@threshold
 print(threshold)
 
 # Run DefineClones.py with the calculated threshold
-system(paste0("DefineClones.py -d ", inputFileName," --act set --nrpoc 6 --model ham --norm len --dist ", threshold), intern = FALSE, ignore.stdout = FALSE)
+system(paste0("DefineClones.py -d ", inputFileName," --act set --nproc 6 --model ham --norm len --dist ", threshold), intern = FALSE, ignore.stdout = FALSE)

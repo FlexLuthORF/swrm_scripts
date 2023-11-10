@@ -19,21 +19,21 @@ def changeo(sample_info, outdir):
         sample_changeo_db
     ]
     
-    
-    subprocess.run(r_script_command, check=True)
+    if not os.path.exists(os.path.join(sample_output_dir, "S5_db-pass_clone-pass.tsv")):
+        subprocess.run(r_script_command, check=True)
     
     
     create_germlines_command = [
         "CreateGermlines.py", 
-        "-d", os.path.join(sample_output_dir, "changeo", "output_file_from_Rscript.tsv"), 
+        "-d", os.path.join(sample_output_dir, "S5_db-pass_clone-pass.tsv"), 
         "-r", "/home/zmvanw01/share/germlines/imgt/human/vdj", 
         "-g", "dmask", 
         "--format", "airr", 
         "--cloned"
     ]
     
-    
-    subprocess.run(create_germlines_command, check=True)
+    if not os.path.exists(os.path.join(sample_output_dir, "S5_db-pass_clone-pass-germ_pass.tsv")):
+        subprocess.run(create_germlines_command, check=True)
 
 
 

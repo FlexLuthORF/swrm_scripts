@@ -39,6 +39,7 @@ def process_sample(sample_info, outdir):
     if not os.path.exists(f"{sample_output_dir}/VRR_primers-pass.fastq"):     
         os.system(f"MaskPrimers.py extract -s {sample_output_dir}/VRR_quality-pass.fastq --start 12 --len 4 --barcode --bf BARCODE --mode cut --log {log_dir}/primers-vrr.log --outname VRR --outdir {sample_output_dir} --nproc 6")
     if not os.path.exists(f"{sample_output_dir}/CRR_primers-pass.fastq"):    
+          #needs full path to primers
         os.system(f"MaskPrimers.py align -s {sample_output_dir}/CRR_quality-pass.fastq -p ./Human_IG_CRegion_RC.fasta --maxlen 100 --maxerror 0.3 --mode cut --skiprc --pf C_CALL --log {log_dir}/cregion.log --outname CRR --nproc 6")
     if not os.path.exists(f"{sample_output_dir}/table.tab"):    
         os.system(f"ParseLog.py -l {log_dir}/cregion.log -f ID PRIMER ERROR PRSTART --outdir {log_dir}")

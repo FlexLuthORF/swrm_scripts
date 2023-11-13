@@ -24,7 +24,7 @@ def changeo(sample_info, outdir):
     
     
     create_germlines_command = [
-        "CreateGermlines.py", 
+        "/home/zmvanw01/anaconda3/envs/immcantation/bin/python", "/home/zmvanw01/.local/bin/CreateGermlines.py", 
         "-d", os.path.join(sample_output_dir, "S5_db-pass_clone-pass.tsv"), 
         "-r", "/home/zmvanw01/share/germlines/imgt/human/vdj", 
         "-g", "dmask", 
@@ -33,6 +33,7 @@ def changeo(sample_info, outdir):
     ]
     
     if not os.path.exists(os.path.join(sample_output_dir, "S5_db-pass_clone-pass-germ_pass.tsv")):
+        print(create_germlines_command)
         subprocess.run(create_germlines_command, check=True)
 
 

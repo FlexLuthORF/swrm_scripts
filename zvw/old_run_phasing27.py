@@ -3,19 +3,17 @@ import subprocess
 import argparse
 from multiprocessing import Pool
 
-def process_sample(subdir):
-    root_dir = os.path.dirname(subdir)  # Get the root directory
-    sample_id = os.path.basename(subdir)
-    output_base = os.path.join(root_dir, 'run_igenotyper')
-    output_dir = os.path.join(output_base, sample_id)
-
-    # Create output directory if not exists
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
+def process_sample(sample_data):
+    subdir, output_base = sample_data
     for file in os.listdir(subdir):
         if file.endswith('.bam') and not file.endswith('.bam.pbi'):
+            sample_id = os.path.basename(subdir)
             bam_path = os.path.join(subdir, file)
+            output_dir = os.path.join(output_base, sample_id)
+
+            # Create output directory if not exists
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
 
             # Run samtools index
             samtools_cmd = "samtools index {} -@ 10".format(bam_path)
@@ -33,10 +31,11 @@ def main():
 
     root_dir = args.root_dir
     print("root dir is "+root_dir)
-
-    sample_dirs = [os.path.join(root_dir, subdir) for subdir in os.listdir(root_dir)
-                   if os.path.isdir(os.path.join(root_dir, subdir)) and subdir != "run_igenotyper"]
-
+    output_base = os.path.join(root_dir, 'run_igenotyper')
+    print("output base is "+output_base)
+    sample_dirs = [(os.path.join(root_dir, subdir), output_base) for subdir in os.listdir(root_dir)
+               if os.path.isdir(os.path.join(root_dir, subdir)) and subdir != "run_igenotyper"
+               and os.path.join(root_dir, subdir) != output_base]
     print(sample_dirs)
     pool = Pool()
     pool.map(process_sample, sample_dirs)
@@ -45,3 +44,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

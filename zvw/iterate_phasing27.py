@@ -3,7 +3,9 @@ import argparse
 import subprocess
 
 def count_subdirectories(root_dir):
-    return len([name for name in os.listdir(root_dir) if os.path.isdir(os.path.join(root_dir, name))])
+    return len([name for name in os.listdir(root_dir) 
+                if os.path.isdir(os.path.join(root_dir, name)) and name != "run_igenotyper"])
+
 
 def create_sbatch_file(root_dir, script_path, sample_count):
     sbatch_content = """#!/bin/bash
@@ -16,7 +18,7 @@ def create_sbatch_file(root_dir, script_path, sample_count):
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=10
 echo "Starting job for phasing with {sample_count} samples."
-python {script_path}
+python {script_path} 
 """.format(sample_count=sample_count, script_path=script_path)
 
     sbatch_file = os.path.join(root_dir, "submit_job.sbatch")

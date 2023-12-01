@@ -1,12 +1,8 @@
 import os
-#import glob
-from multiprocessing import Pool
-import argparse
 import tempfile
 
-def process_sample(sample_info, outdir):
-    sample_id, r1_gz_path = sample_info
 
+def process_sample(sample_id, r1_gz_path, outdir):
     r2_gz_path = r1_gz_path.replace('R1', 'R2')
 
     if not os.path.exists(r2_gz_path):
@@ -17,7 +13,6 @@ def process_sample(sample_info, outdir):
         os.system(f"gunzip -c {r1_gz_path} > {r1_tempfile.name}")
         r1_path = r1_tempfile.name
 
-    # Decompress R2 file to a temporary file
     with tempfile.NamedTemporaryFile(mode='w+b', suffix='.fastq', delete=False) as r2_tempfile:
         os.system(f"gunzip -c {r2_gz_path} > {r2_tempfile.name}")
         r2_path = r2_tempfile.name
@@ -28,36 +23,40 @@ def process_sample(sample_info, outdir):
     os.makedirs(log_dir, exist_ok=True)
     fastqc_dir = os.path.join(log_dir, "fastqc")
     os.makedirs(fastqc_dir, exist_ok=True)
-    # Construct and execute the commands
-    if not os.path.exists(f"{sample_output_dir}/CRR_quality-pass.fastq"):
-        os.system(f"fastqc -o {log_dir}/fastqc {r1_path}")    
-        os.system(f"FilterSeq.py quality -s {r1_path} -q 20 --nproc 6 --outname CRR --outdir {sample_output_dir} --log {log_dir}/quality-crr.log")
-    if not os.path.exists(f"{sample_output_dir}/VRR_quality-pass.fastq"):   
-        os.system(f"fastqc -o {log_dir}/fastqc {r2_path}")   
-        os.system(f"FilterSeq.py quality -s {r2_path} -q 20 --nproc 6 --outname VRR --outdir {sample_output_dir} --log {log_dir}/quality-vrr.log")
+    #if not os.path.exists(f"{sample_output_dir}/CRR_quality-pass.fastq"):
+    os.system(f"~/anaconda3/envs/multiqc/bin/fastqc -o {log_dir}/fastqc {r2_path}")
+    os.system(f"~/anaconda3/envs/multiqc/bin/fastqc -o {log_dir}/fastqc {r1_path}")
+    if not os.path.exists(f"{sample_output_dir}/CRR_quality-pass.fastq"):      
+        os.system(f"FilterSeq.py quality -s {r1_path} -q 20 --nproc 11 --outname CRR --outdir {sample_output_dir} --log {log_dir}/quality-crr.log")
+
+    if not os.path.exists(f"{sample_output_dir}/VRR_quality-pass.fastq"):        
+        os.system(f"FilterSeq.py quality -s {r2_path} -q 20 --nproc 11 --outname VRR --outdir {sample_output_dir} --log {log_dir}/quality-vrr.log")
+
     if os.path.exists(r1_path):   
         os.remove(r1_path)
+
     if os.path.exists(r2_path):    
         os.remove(r2_path)
+
     if not os.path.exists(f"{sample_output_dir}/VRR_primers-pass.fastq"):     
-        os.system(f"MaskPrimers.py extract -s {sample_output_dir}/VRR_quality-pass.fastq --start 12 --len 4 --barcode --bf BARCODE --mode cut --log {log_dir}/primers-vrr.log --outname VRR --outdir {sample_output_dir} --nproc 6")
+        os.system(f"MaskPrimers.py extract -s {sample_output_dir}/VRR_quality-pass.fastq --start 12 --len 4 --barcode --bf BARCODE --mode cut --log {log_dir}/primers-vrr.log --outname VRR --outdir {sample_output_dir} --nproc 11")
     if not os.path.exists(f"{sample_output_dir}/CRR_primers-pass.fastq"):    
           #needs full path to primers
-        os.system(f"MaskPrimers.py align -s {sample_output_dir}/CRR_quality-pass.fastq -p ./Human_IG_CRegion_RC.fasta --maxlen 100 --maxerror 0.3 --mode cut --skiprc --pf C_CALL --log {log_dir}/cregion.log --outname CRR --nproc 6")
+        os.system(f"MaskPrimers.py align -s {sample_output_dir}/CRR_quality-pass.fastq -p /home/zmvanw01/data/references/Human_IG_CRegion_RC.fasta --maxlen 100 --maxerror 0.3 --mode cut --skiprc --pf C_CALL --log {log_dir}/cregion.log --outname CRR --nproc 11")
     if not os.path.exists(f"{sample_output_dir}/table.tab"):    
         os.system(f"ParseLog.py -l {log_dir}/cregion.log -f ID PRIMER ERROR PRSTART --outdir {log_dir}")
     if not os.path.exists(f"{sample_output_dir}/CRR_primers-pass_pair-pass.fastq"):    
         os.system(f"PairSeq.py -1 {sample_output_dir}/VRR_primers-pass.fastq -2 {sample_output_dir}/CRR_primers-pass.fastq --1f BARCODE --2f C_CALL --coord illumina")
-    if not os.path.exists(f"{sample_output_dir}/CRR_consensus-pass.fastq"):
-        os.system(f"BuildConsensus.py -s {sample_output_dir}/VRR_primers-pass_pair-pass.fastq --bf BARCODE --pf C_CALL --prcons 0.6 -n 1 -q 0 --maxerror 0.1 --maxgap 0.5 --nproc 6 --log {log_dir}/consensus-vrr.log --outdir {sample_output_dir} --outname VRR")
-    if not os.path.exists(f"{sample_output_dir}/VRR_consensus-pass.fastq"):   
-        os.system(f"BuildConsensus.py -s {sample_output_dir}/CRR_primers-pass_pair-pass.fastq --bf BARCODE --pf C_CALL --prcons 0.6 -n 1 -q 0 --maxerror 0.1 --maxgap 0.5 --nproc 6 --log {log_dir}/consensus-crr.log --outdir {sample_output_dir} --outname CRR")
+    if not os.path.exists(f"{sample_output_dir}/VRR_consensus-pass.fastq"):
+        os.system(f"BuildConsensus.py -s {sample_output_dir}/VRR_primers-pass_pair-pass.fastq --bf BARCODE --pf C_CALL --prcons 0.6 -n 1 -q 0 --maxerror 0.1 --maxgap 0.5 --nproc 11 --log {log_dir}/consensus-vrr.log --outdir {sample_output_dir} --outname VRR")
+    if not os.path.exists(f"{sample_output_dir}/CRR_consensus-pass.fastq"):   
+        os.system(f"BuildConsensus.py -s {sample_output_dir}/CRR_primers-pass_pair-pass.fastq --bf BARCODE --pf C_CALL --prcons 0.6 -n 1 -q 0 --maxerror 0.1 --maxgap 0.5 --nproc 11 --log {log_dir}/consensus-crr.log --outdir {sample_output_dir} --outname CRR")
     if not os.path.exists(f"{sample_output_dir}/CRR_consensus-pass_pair-pass.fastq"):  
         os.system(f"PairSeq.py -1 {sample_output_dir}/VRR_consensus-pass.fastq -2 {sample_output_dir}/CRR_consensus-pass.fastq --coord presto")
     if not os.path.exists(f"{sample_output_dir}/S5_assemble-pass.fastq"):   
-        os.system(f"AssemblePairs.py align -1 {sample_output_dir}/VRR_consensus-pass_pair-pass.fastq -2 {sample_output_dir}/CRR_consensus-pass_pair-pass.fastq --coord presto --rc tail --1f CONSCOUNT --2f PRCONS CONSCOUNT --minlen 8 --maxerror 0.3 --alpha 1e-5 --scanrev --nproc 6 --log {log_dir}/assemble.log --outname S5")
+        os.system(f"AssemblePairs.py align -1 {sample_output_dir}/VRR_consensus-pass_pair-pass.fastq -2 {sample_output_dir}/CRR_consensus-pass_pair-pass.fastq --coord presto --rc tail --1f CONSCOUNT --2f PRCONS CONSCOUNT --minlen 8 --maxerror 0.3 --alpha 1e-5 --scanrev --nproc 11 --log {log_dir}/assemble.log --outname S5")
     if not os.path.exists(f"{sample_output_dir}/S5-MQ_maskqual-pass.fastq"):    
-        os.system(f"FilterSeq.py maskqual -s {sample_output_dir}/S5_assemble-pass.fastq -q 30 --nproc 6 --outname S5-MQ --log {log_dir}/maskqual.log")
+        os.system(f"FilterSeq.py maskqual -s {sample_output_dir}/S5_assemble-pass.fastq -q 30 --nproc 11 --outname S5-MQ --log {log_dir}/maskqual.log")
     if not os.path.exists(f"{sample_output_dir}/S5-final_reheader.fastq"):    
         os.system(f"ParseHeaders.py collapse -s {sample_output_dir}/S5-MQ_maskqual-pass.fastq -f CONSCOUNT --act min --outname S5-final")
     if not os.path.exists(f"{sample_output_dir}/S5-final_total.fastq"):    
@@ -81,24 +80,14 @@ def process_sample(sample_info, outdir):
     if not os.path.exists(f"{sample_output_dir}/S5-final_total_collapse-unique_atleast-2_reheader.fasta"):
         os.system(f'ParseHeaders.py rename -s {sample_output_dir}/S5-final_total_collapse-unique_atleast-2.fastq --fasta -f PRCONS -k C_CALL')
     if not os.path.exists(f"{sample_output_dir}/S5_igblast.fmt7"):
-        os.system(f'AssignGenes.py igblast -s {sample_output_dir}/S5-final_total_collapse-unique_atleast-2_reheader.fasta --organism human --loci ig -b /home/zmvanw01/share/igblast --format blast --nproc 6 --outdir {sample_output_dir} --outname "S5"')
+        os.system(f'AssignGenes.py igblast -s {sample_output_dir}/S5-final_total_collapse-unique_atleast-2_reheader.fasta --organism human --loci ig -b /home/zmvanw01/share/igblast --format blast --nproc 11 --outdir {sample_output_dir} --outname "S5"')
     if not os.path.exists(f"{sample_output_dir}/S5_db-pass.tsv"):
         os.system(f'MakeDb.py igblast -s {sample_output_dir}/S5-final_total_collapse-unique_atleast-2_reheader.fasta -i {sample_output_dir}/S5_igblast.fmt7 --extended --failed --format airr -r /home/zmvanw01/share/germlines/imgt/human/vdj/ --outname S5')
 
-
-
-
-def read_sample_file(file_list_path):
-    with open(file_list_path, 'r') as file_list:
-        return [line.strip().split() for line in file_list if line.strip()]
-
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process some samples.')
-    parser.add_argument('--file', required=True, help='Path to the file containing the list of samples.')
-    parser.add_argument('--outdir', required=True, help='Desired output directory path.')
-
-    args = parser.parse_args()
-
-    sample_info_list = read_sample_file(args.file)
-    with Pool() as pool:
-        pool.starmap(process_sample, [(info, args.outdir) for info in sample_info_list])
+    # Keeping the first components up to the required depth and appending 'presto/{sample_id}'
+    sample_id = os.environ['SAMPLE_ID']
+    r1_gz_path = os.environ['R1_GZ_PATH']
+    base_dir = os.path.normpath(r1_gz_path).split(os.sep)
+    outdir = "./presto"
+    process_sample(sample_id, r1_gz_path, outdir)

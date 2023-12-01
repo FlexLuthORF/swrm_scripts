@@ -1,0 +1,21 @@
+Primer Name   Ig Type
+primer1.1_G   IgG
+primer1.2_G   IgG
+primer1.3_G   IgG
+primer1.4_G   IgG
+primer1.5_G   IgG
+primer2_A     IgA
+primer3.1_M   IgM
+primer3.2_M   IgM
+primer3.3_M   IgM
+primer3.4_M   IgM
+primer3.5_M   IgM
+primer4_D     IgD
+primer5.1_K   IgK
+primer5.2_K   IgK
+primer6.1_L   IgL
+primer6.2_L   IgL
+primer6.3_L   IgL
+primer6.4_L   IgL
+primer6.5_L   IgL
+primer6.6_L   IgL

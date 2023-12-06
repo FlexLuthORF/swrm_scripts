@@ -1,45 +1,49 @@
 import subprocess
+import pandas as pd
+import os
 
-# Define file paths
-v_alleles_file = "path/to/V_alleles.fasta"  # Ungapped V alleles
-d_alleles_file = "path/to/D_alleles.fasta"  # D alleles
-j_alleles_file = "path/to/J_alleles.fasta"  # J alleles
+os.environ['IGDATA'] = '/home/zmvanw01/projects/CW50/231122/presto/CW50_NS_pool1_220781702C/alleles/personal-ref'
 
-# Gapping V alleles
-# Define the gapped reference file and output file for gapped V alleles
-gapped_ref_file = "path/to/gapped_ref.fasta"  # Reference for gapping
-gapped_v_output = "path/to/gapped_V_alleles.fasta"  # Output for gapped V alleles
-subprocess.run(["gap_sequences", v_alleles_file, gapped_ref_file, gapped_v_output])
+#make if statements for loci with d_alleles
 
-# Create NDM file
-# The ndm file is created from the gapped V alleles
-ndm_output = "path/to/ndm_file.ndm"
-subprocess.run(["make_igblast_ndm", gapped_v_output, "VH", ndm_output])  # Adjust "VH" if needed
+v_alleles_file = "/home/zmvanw01/projects/CW50/231122/presto/CW50_NS_pool1_220781702C/alleles/personal-ref/fasta/human_ig_V_alleles.fasta"  # Ungapped V alleles
+#d_alleles_file = "path/to/D_alleles.fasta"  # D alleles
+j_alleles_file = "/home/zmvanw01/projects/CW50/231122/presto/CW50_NS_pool1_220781702C/alleles/personal-ref/fasta/human_ig_J_alleles.fasta"  # J alleles
+sample_seq_file = "/home/zmvanw01/projects/CW50/231122/presto/CW50_NS_pool1_220781702C/S5-final_total_collapse-unique_atleast-2_reheader.fasta"  # Test sequences
 
-# Create AUX file
-# The aux file is created from J alleles
-aux_output = "path/to/aux_file.aux"
-subprocess.run(["annotate_j", j_alleles_file, aux_output])
+# cp aux and optional from ~/share/igblast
+
 
 # Create custom BLAST databases
-subprocess.run(["makeblastdb", "-in", gapped_v_output, "-dbtype", "nucl"])
-subprocess.run(["makeblastdb", "-in", d_alleles_file, "-dbtype", "nucl"])
-subprocess.run(["makeblastdb", "-in", j_alleles_file, "-dbtype", "nucl"])
+#subprocess.run(["makeblastdb", "-in", v_alleles_file,
+#                 "-dbtype", "nucl",
+#                 "-parse_seqids",
+#                 "-out", "/home/zmvanw01/projects/CW50/231122/presto/CW50_NS_pool1_220781702C/alleles/personal-ref/database/human_ig_V"])
+#subprocess.run(["makeblastdb", "-in", d_alleles_file, "-dbtype", "nucl"])
+#subprocess.run(["makeblastdb", "-in", j_alleles_file, 
+#                "-dbtype", "nucl",
+#                "-parse_seqids",
+#                "-out", "/home/zmvanw01/projects/CW50/231122/presto/CW50_NS_pool1_220781702C/alleles/personal-ref/database/human_ig_J"])
 
-# IgBlast command with custom database
+
+igblast_output = "igblast_output.fmt7"
+changeo_output = "changeo_output.tsv"
+
 igblast_command = [
     "igblastn",
-    "-germline_db_V", gapped_v_output,
-    "-germline_db_D", d_alleles_file,
-    "-germline_db_J", j_alleles_file,
-    "--auxiliary_data", aux_output,
-    "--custom_internal_data", ndm_output, 
+    "-germline_db_V", "/home/zmvanw01/projects/CW50/231122/presto/CW50_NS_pool1_220781702C/alleles/personal-ref/database/human_ig_V",
+    "-germline_db_D", "/home/zmvanw01/projects/CW50/231122/presto/CW50_NS_pool1_220781702C/alleles/personal-ref/database/imgt_human_ig_d",
+    "-germline_db_J", "/home/zmvanw01/projects/CW50/231122/presto/CW50_NS_pool1_220781702C/alleles/personal-ref/database/human_ig_J",
+    "-auxiliary_data", aux_output,
+    #"-custom_internal_data", ndm_output, 
+    "-query", sample_seq_file,
+    "-outfmt", "19",
+    "-out", igblast_output,
+    #"-num_threads", "4",
+    "-organism", "human",
+    "-ig_seqtype", "Ig",
+    "-domain_system", "imgt"
 ]
 
-igblast_output = "igblast_output.txt"
-changeo_output = "changeo_output.txt"
-
-
-subprocess.run(["MakeDb.py", "-i", igblast_output, "-s", sample_seq_file, "-o", changeo_output])
-
+subprocess.run(igblast_command)
 

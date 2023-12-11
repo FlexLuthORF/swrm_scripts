@@ -16,14 +16,14 @@ with open(args.sample_ids_file, 'r') as file:
         sample_ids.append(sample_id)
 
 # Path to the script
-script_path = 'path_to_your_script.py'
+script_path = '/home/zmvanw01/git_repos/swrm_scripts/zvw/repseq_personal-igblast.py'
 
 # Maximum number of concurrent jobs
 max_jobs = 12
 
 # Function to get the current number of running jobs
 def get_running_jobs_count():
-    result = subprocess.run(['squeue', '-u', 'your_username'], capture_output=True, text=True)
+    result = subprocess.run(['squeue', '-u', 'zmvanw01'], capture_output=True, text=True)
     return len(result.stdout.splitlines()) - 1  # Adjust as needed
 
 # Iterate over sample IDs and submit jobs
@@ -32,8 +32,10 @@ for sample_id in sample_ids:
     while get_running_jobs_count() >= max_jobs:
         time.sleep(60)  # Wait for 60 seconds before checking again
 
-    # Submit the job
-    log_file = f"./logs/{sample_id}.log"
-    subprocess.run(["sbatch", "-o", log_file, script_path, sample_id])
+    # Construct the command to be wrapped
+    command_to_wrap = f"python {script_path} {sample_id}"
+
+    # Submit the job with --wrap
+    subprocess.run(["sbatch", "--job-name=repseq", "-o", log_file, "--wrap", command_to_wrap])
 
     print(f"Submitted job for sample ID: {sample_id}")

@@ -36,6 +36,7 @@ for sample_id in sample_ids:
     command_to_wrap = f"python {script_path} {sample_id}"
 
     # Submit the job with --wrap
+    log_file = f"./logs/{sample_id}.log"
     subprocess.run(["sbatch", "--job-name=repseq", "-o", log_file, "--wrap", command_to_wrap])
 
     print(f"Submitted job for sample ID: {sample_id}")

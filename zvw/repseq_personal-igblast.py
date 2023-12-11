@@ -2,6 +2,7 @@ import subprocess
 import pandas as pd
 import os
 import argparse
+import glob
 
 parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('sampleID', type=str, help='Sample ID')
@@ -19,11 +20,16 @@ for chain in ('IGK','IGL'):
     os.makedirs(database_dir, exist_ok=True)
     os.makedirs(fasta_dir, exist_ok=True)
     # cp aux and optional from ~/share/igblast
-    subprocess.run(f"cp -r /home/zmvanw01/share/igblast/internal_data /home/zmvanw01/projects/CW50/231122/presto/{sampleID}/alleles/personal-ref/{chain}")
-    subprocess.run(f"cp -r /home/zmvanw01/share/igblast/optional_file /home/zmvanw01/projects/CW50/231122/presto/{sampleID}/alleles/personal-ref/{chain}")
-    subprocess.run(f"cp /home/zmvanw01/share/igblast/database/imgt_human_ig_d.* /home/zmvanw01/projects/CW50/231122/presto/{sampleID}/alleles/personal-ref/{chain}/database")
+    subprocess.run(["cp", "-r", "/home/zmvanw01/share/igblast/internal_data", f"/home/zmvanw01/projects/CW50/231122/presto/{sampleID}/alleles/personal-ref/{chain}"])
+    subprocess.run(["cp", "-r", "/home/zmvanw01/share/igblast/optional_file", f"/home/zmvanw01/projects/CW50/231122/presto/{sampleID}/alleles/personal-ref/{chain}"])
+    d_allele_files = glob.glob('/home/zmvanw01/share/igblast/database/imgt_human_ig_d.*')
+    for file in d_allele_files:
+        subprocess.run(["cp", file, f"/home/zmvanw01/projects/CW50/231122/presto/{sampleID}/alleles/personal-ref/{chain}/database"])
 
-    subprocess.run(["/home/zmvanw01/git_repos/swrm_scripts/zvw/fasta-from-annotations.py", 
+
+
+    subprocess.run(["python",
+                    "/home/zmvanw01/git_repos/swrm_scripts/zvw/fasta-from-annotations.py", 
                    f"/home/egenge01/projects/CW50/{chain}_alleles/{sampleID}/annotations.csv", 
                    f"/home/zmvanw01/projects/CW50/231122/presto/{sampleID}/alleles/personal-ref/{chain}"])
     

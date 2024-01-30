@@ -29,7 +29,7 @@ def read_sample_file(file_list_path):
         return [line.strip().split() for line in file_list if line.strip()]
 
 def main(file_list_path):
-    processing_script_path = '/home/zmvanw01/git_repos/swrm_scripts/zvw/immcantation/n-run_presto.py'
+    processing_script_path = '/home/zmvanw01/git_repos/swrm_scripts/zvw/immcantation/run_presto.py'
     max_jobs = 15
 
     sample_info_list = read_sample_file(file_list_path)

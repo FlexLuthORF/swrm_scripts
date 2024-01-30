@@ -11,7 +11,7 @@ parser.add_argument('base_directory', help='Base directory path for SCP command.
 args = parser.parse_args()
 
 # SSH Key path
-ssh_key_path = "~/.ssh/id_rsa_hydra"
+ssh_key_path = "/home/zmvanw01/.ssh/id_rsa_hydra"
 
 # SSH command to list directories
 ssh_command = f"ssh -i {ssh_key_path} zachvanwinkle@136.165.158.10 'ls -d {args.base_directory}/*/'"
@@ -27,9 +27,9 @@ csv_writer.writerow(['Identifier', 'BioSample_Name'])
 
 # Special case: handle files in base_directory
 scp_base = [
-    f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{args.base_directory}*.bam .",
-    f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{args.base_directory}*.pbi .",
-    f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{args.base_directory}*.xml ."
+    f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{args.base_directory}/*.bam .",
+    f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{args.base_directory}/*.pbi .",
+    f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{args.base_directory}/*.xml ."
 ]
 for cmd in scp_base:
     subprocess.run(cmd, shell=True)
@@ -51,9 +51,9 @@ def rename_and_move_files(base_filename, bio_sample_name):
 # Iterate over directories
 for dir_path in directories:
     # SCP commands
-    scp_bam = f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{dir_path}*bam ."
-    scp_bam_pbi = f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{dir_path}*bam.pbi ."
-    scp_xml = f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{dir_path}*.xml ."
+    scp_bam = f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{dir_path}/*bam ."
+    scp_bam_pbi = f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{dir_path}/*bam.pbi ."
+    scp_xml = f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{dir_path}/*.xml ."
     
     # Execute SCP commands
     subprocess.run(scp_bam, shell=True)

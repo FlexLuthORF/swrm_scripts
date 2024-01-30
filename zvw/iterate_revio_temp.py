@@ -3,17 +3,16 @@ import sys
 import os
 import subprocess
 import time
+import glob
 
 def submit_job(sample_id, data_path, root_path):
     scratch = f"{root_path}/minimap/{sample_id}"
     os.makedirs(scratch, exist_ok=True)
     job_script = "/home/zmvanw01/git_repos/swrm_scripts/zvw/revio_temp.sh"
 
-    # Common directory for SLURM output and error files
     output_dir = os.path.join(root_path, "slurm_outputs")
     os.makedirs(output_dir, exist_ok=True)
 
-    # Construct the SLURM sbatch command
     sbatch_command = [
         "sbatch",
         "--job-name=revio_map",
@@ -26,7 +25,6 @@ def submit_job(sample_id, data_path, root_path):
         scratch
     ]
 
-    # Submit the job
     subprocess.run(sbatch_command)
 
 def get_running_jobs():
@@ -34,20 +32,28 @@ def get_running_jobs():
     return len(result.stdout.strip().split('\n'))
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python script.py <root_path>")
+    if len(sys.argv) < 3:
+        print("Usage: python script.py <root_path> <csv_file>")
         sys.exit(1)
 
     root_path = sys.argv[1]
-    max_jobs = 10  # Maximum number of concurrent jobs
+    csv_file = sys.argv[2]
+    max_jobs = 10
 
-    with open('/home/watsonlab/project/CW61/STC567/output.tsv', newline='') as file:
-        reader = csv.reader(file, delimiter='\t')
-        next(reader)  # Skip header row if present
+    with open(csv_file, newline='') as file:
+        reader = csv.reader(file, delimiter=',')
+        next(reader)
         for row in reader:
-            if len(row) == 2:
-                while get_running_jobs() >= max_jobs:
-                    time.sleep(60)  # Wait for 60 seconds before checking again
-                submit_job(row[0], row[1], root_path)
+            if len(row) > 0:
+                sample_id = row[0]
+                data_path_pattern = f"{root_path}/{sample_id}/{sample_id}*.bam"
+                data_paths = glob.glob(data_path_pattern)
+                if data_paths:
+                    data_path = data_paths[0]
+                    while get_running_jobs() >= max_jobs:
+                        time.sleep(60)
+                    submit_job(sample_id, data_path, root_path)
+                else:
+                    print(f"No data found for {sample_id}")
             else:
-                print(f"Invalid row in TSV file: {row}")
+                print("Invalid row in CSV file")

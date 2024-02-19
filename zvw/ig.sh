@@ -7,7 +7,7 @@ function run_IG {
     mkdir -p ${scratch}/IG_jobs_bed-changes || { echo "Failed to create IG_jobs_bed-changes directory"; exit 1; }
 
     # Check if the input file exists and readable
-    input_file="/home/zmvanw01/test/new_fofn.txt"
+    input_file="/home/zmvanw01/test-beds/newbams/newer_fofn.txt"
     if [[ ! -f "$input_file" ]] || [[ ! -r "$input_file" ]]; then
         echo "Input file does not exist or is not readable: $input_file"
         exit 1
@@ -27,10 +27,13 @@ function run_IG {
 
         # Adding commands to the script
         {
-            echo "samtools index ${data_path}"
+            #echo "samtools index ${data_path}"
             echo "IG phase --sample ${sample} --threads 11 ${data_path} ${scratch}/run_igenotyper_bed-changes/${sample}"
+            echo "echo phase completed"
             echo "IG assembly --threads 11 ${scratch}/run_igenotyper_bed-changes/${sample}"
+            echo "echo assembly completed"
             echo "IG detect ${scratch}/run_igenotyper_bed-changes/${sample}"
+            echo "echo detect completed"
         } >> $script_path || { echo "Failed to write commands for sample: $sample"; continue; }
 
         # Submit the script as a job

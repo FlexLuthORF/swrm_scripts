@@ -23,37 +23,37 @@ output_headers = [
 ]
 
 v_coord_map = {
-    'allele_sequence': 'GENE',
-    'V-HEPTAMER': 'HEPTAMER',
-    'V-SPACER': 'SPACER',
-    'V-NONAMER': 'NONAMER',
-    'V-EXON2': 'EXON_2',
-    'V-INTRON': 'INTRON',
-    'L-PART1': 'EXON_1',
+    'allele_sequence': 'gene',
+    'V-HEPTAMER': 'heptamer',
+    'V-SPACER': 'spacer',
+    'V-NONAMER': 'nonamer',
+    'V-EXON2': 'exon_2',
+    'V-INTRON': 'intron',
+    'L-PART1': 'exon_1',
     'V-REGION': 'V-REGION',
-    'L-PART2': 'L-PART2',
-    'V-UTR': 'UTR',
+    'L-PART2': 'l-part2',
+    'V-UTR': 'utr',
 }
 
 utr_loci = ['IGH']
 
 d_coord_map = {
-    'allele_sequence': 'GENE',
-    'D-3_HEPTAMER': '3_HEPTAMER',
-    'D-3_SPACER': '3_SPACER',
-    'D-3_NONAMER': '3_NONAMER',
-    'D-REGION': 'EXON_1',
-    'D-5_HEPTAMER': '5_HEPTAMER',
-    'D-5_SPACER': '5_SPACER',
-    'D-5_NONAMER': '5_NONAMER',
+    'allele_sequence': 'gene',
+    'D-3_HEPTAMER': '3_heptamer',
+    'D-3_SPACER': '3_spacer',
+    'D-3_NONAMER': '3_nonamer',
+    'D-REGION': 'exon_1',
+    'D-5_HEPTAMER': '5_heptamer',
+    'D-5_SPACER': '5_spacer',
+    'D-5_NONAMER': '5_nonamer',
 }
 
 j_coord_map = {
-    'allele_sequence': 'GENE',
-    'J-HEPTAMER': 'HEPTAMER',
-    'J-SPACER': 'SPACER',
-    'J-NONAMER': 'NONAMER',
-    'J-REGION': 'EXON_1',
+    'allele_sequence': 'gene',
+    'J-HEPTAMER': 'heptamer',
+    'J-SPACER': 'spacer',
+    'J-NONAMER': 'nonamer',
+    'J-REGION': 'exon_1',
 }
 
 c_coord_map = {
@@ -285,20 +285,21 @@ def process_rows(required_gene_type, refname, coord_map, samfile, project, subje
             rec_sense = sense
             if sense == '+-':
                 if gene_type == 'V':
-                    rec_sense = '+' if beds[refname][gene]['NONAMER']['start'] > beds[refname][gene]['HEPTAMER']['start'] else '-'
+                    rec_sense = '+' if beds[refname][gene]['nonamer']['start'] > beds[refname][gene]['heptamer']['start'] else '-'
                 elif gene_type == 'J':
-                    rec_sense = '-' if beds[refname][gene]['NONAMER']['start'] > beds[refname][gene]['HEPTAMER']['start'] else '+' 
+                    rec_sense = '-' if beds[refname][gene]['nonamer']['start'] > beds[refname][gene]['heptamer']['start'] else '+' 
                 elif gene_type == 'D':
                     for ex_gene in beds[refname]:       # find the first J gene and use its sense
                         if get_gene_type(ex_gene) == 'J':
-                            rec_sense = '-' if beds[refname][ex_gene]['NONAMER']['start'] > beds[refname][ex_gene]['HEPTAMER']['start'] else '+'
+                            rec_sense = '-' if beds[refname][ex_gene]['nonamer']['start'] > beds[refname][ex_gene]['heptamer']['start'] else '+'
                             break
                 elif gene_type == 'C':
                     rec_sense = None    # decide below, based on order of exons
 
             if gene_type != 'C':
-                seq_start = beds[refname][gene]['GENE']['start']
-                seq_end = beds[refname][gene]['GENE']['end']
+                print("trying to prcoess: "+ gene + refname)
+                seq_start = beds[refname][gene]['gene']['start']
+                seq_end = beds[refname][gene]['gene']['end']
                 gene_label = gene
 
                 for annot_key, b_name in coord_map.items():
@@ -311,27 +312,27 @@ def process_rows(required_gene_type, refname, coord_map, samfile, project, subje
                 gene_label = '_'.join(gene.split('_')[:-1])
                 for ex_gene in beds[refname]:
                     if get_gene_type(ex_gene) == 'C' and gene_label == '_'.join(ex_gene.split('_')[:-1]):
-                        if seq_start is None or beds[refname][ex_gene]['GENE']['start'] < seq_start:
-                            seq_start = beds[refname][ex_gene]['GENE']['start']
+                        if seq_start is None or beds[refname][ex_gene]['gene']['start'] < seq_start:
+                            seq_start = beds[refname][ex_gene]['gene']['start']
 
-                        if seq_end is None or beds[refname][ex_gene]['GENE']['end'] > seq_end:
-                            seq_end = beds[refname][ex_gene]['GENE']['end']
+                        if seq_end is None or beds[refname][ex_gene]['gene']['end'] > seq_end:
+                            seq_end = beds[refname][ex_gene]['gene']['end']
 
                         if rec_sense is None and ex_gene.split("_")[-1] != '1':
-                            rec_sense = '+' if beds[refname][ex_gene]['GENE']['start'] > beds[refname][gene]['GENE']['start'] else '-'
+                            rec_sense = '+' if beds[refname][ex_gene]['gene']['start'] > beds[refname][gene]['gene']['start'] else '-'
 
                 # For single exon C-genes, should there be any, find the first J gene and use its sense
                 if rec_sense is None:
                     for ex_gene in beds[refname]:
                         if get_gene_type(ex_gene) == 'J':
-                            rec_sense = '-' if beds[refname][ex_gene]['NONAMER']['start'] > beds[refname][ex_gene]['HEPTAMER']['start'] else '+'
+                            rec_sense = '-' if beds[refname][ex_gene]['nonamer']['start'] > beds[refname][ex_gene]['heptamer']['start'] else '+'
                             break
 
                 annotation_ranges.append((1, seq_end - seq_start, 'allele_sequence'))
 
                 for ex_gene in beds[refname]:
                     if gene_label == '_'.join(ex_gene.split('_')[:-1]):
-                        annotation_ranges.append((beds[refname][ex_gene]['GENE']['start'] - seq_start + 1, beds[refname][ex_gene]['GENE']['end'] - seq_start, f'C-EXON_{ex_gene.split("_")[-1]}'))
+                        annotation_ranges.append((beds[refname][ex_gene]['gene']['start'] - seq_start + 1, beds[refname][ex_gene]['gene']['end'] - seq_start, f'C-EXON_{ex_gene.split("_")[-1]}'))
 
             if gene == debug_gene:
                 print(f"Processing {gene} for {sample_name}. Required range {seq_start} - {seq_end}")

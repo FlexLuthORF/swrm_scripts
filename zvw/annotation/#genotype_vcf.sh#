@@ -22,13 +22,12 @@ function genotype_SV_regions_entire {
     > "${outd}/SV_genotype_results.txt"
 
     while IFS=$'\t' read -r sample bam_file_path; do
-        
+        bam_base_name=$(basename "${bam_file_path}" .bam)
 
         samtools addreplacerg -r ID:"${sample}" -r SM:"${sample}" \
             -o "${scratch}/$sample/${bam_base_name}.editRG.bam" "${bam_file_path}"
         samtools index "${scratch}/$sample/${bam_base_name}.editRG.bam"
 
-        bam_base_name=$(basename "${bam_file_path}" .bam)
         bam_path="${scratch}/$sample/${bam_base_name}.editRG.bam"
         echo $bam_path
 
@@ -91,13 +90,12 @@ function get_vcf_files {
         bcftools mpileup -B -a QS -Ou -f "${reffn}" \
             --threads "${num_threads}" "$bam_file" | \
             bcftools call -m -Oz -o "${of}.vcf.gz"
-        bcftools index "${of}.vcf.gz"7
+        bcftools index "${of}.vcf.gz"
 
         bcftools mpileup -B -a QS -Ou -f "${reffn}" \
             --threads "${num_threads}" "$bam_file" | \
             bcftools call -m -Ov -o "${of}.vcf"
-        
-
+       
         
         #python "${changeg}" "${of}.vcf" "${SV_regions_entire}" "${outd}/${sample}/change_to_hemi/${sample}.vcf"
        # bgzip -c "${outd}/${sample}/change_to_hemi/${sample}.vcf" > "${outd}/${sample}/change_to_hemi/${sample}.vcf.gz"
@@ -113,10 +111,10 @@ function get_vcf_files {
         
         if [ "$IGK_SV_GT" == "0/1" ] && [ "$IGL_SV_GT" == "0/1" ]; then
         	sv_regions_input="${SV_regions_entire}"
-    	elif [ "$IGK_SV_GT" == "0/1" ] && [ "$IGL_SV_GT" != "0/1" ]; then
+    	elif [ "$IGK_SV_GT" == "0/1" ] && [ "$IGL_SV_GT" == "0/0" ]; then
         	grep "IGKV1-NL1" "${SV_regions_entire}" > IGKV1-NL1.bed
             sv_regions_input=IGKV1-NL1.bed  
-    	elif [ "$IGK_SV_GT" != "0/1" ] && [ "$IGL_SV_GT" == "0/1" ]; then
+    	elif [ "$IGK_SV_GT" == "0/0" ] && [ "$IGL_SV_GT" == "0/1" ]; then
         	grep "IGLV5-39" "${SV_regions_entire}" > IGLV5-39.bed
             sv_regions_input=IGLV5-39.bed
     	else

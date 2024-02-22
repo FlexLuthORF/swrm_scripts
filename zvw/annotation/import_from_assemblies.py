@@ -126,16 +126,16 @@ def process_d_gene(refname, sense, beds, notes, refs, res, row):
         res[row_el + '_CIGAR'] = row[row_el + '_CIGAR']
     #    res[row_el + '_CIGAR'] = Cigar(row[row_el + '_CIGAR'])._reverse_cigar() if sense == '-' else row[row_el + '_CIGAR']
 
-    if row['D-5_HEPTAMER'] and row['D-5_HEPTAMER'] != coords['5_HEPTAMER']['seq']:
+    if row['D-5_HEPTAMER'] and row['D-5_HEPTAMER'] != coords['5_heptamer']['seq']:
         notes.append('5 Heptamer does not match reference')
 
-    if row['D-5_NONAMER'] and row['D-5_NONAMER'] != coords['5_NONAMER']['seq']:
+    if row['D-5_NONAMER'] and row['D-5_NONAMER'] != coords['5_nonamer']['seq']:
         notes.append('5 Nonamer does not match reference')
 
-    if row['D-3_HEPTAMER'] and row['D-3_HEPTAMER'] != coords['3_HEPTAMER']['seq']:
+    if row['D-3_HEPTAMER'] and row['D-3_HEPTAMER'] != coords['3_heptamer']['seq']:
         notes.append('3 Heptamer does not match reference')
 
-    if row['D-3_NONAMER'] and row['D-3_NONAMER'] != coords['3_NONAMER']['seq']:
+    if row['D-3_NONAMER'] and row['D-3_NONAMER'] != coords['3_nonamer']['seq']:
         notes.append('3 Nonamer does not match reference')
 
     try:
@@ -192,10 +192,10 @@ def process_j_gene(refname, sense, beds, notes, refs, res, row):
         res[row_el + '_CIGAR'] = row[row_el + '_CIGAR']
     #    res[row_el + '_CIGAR'] = Cigar(row[row_el + '_CIGAR'])._reverse_cigar()  if sense == '-' else row[row_el + '_CIGAR']
 
-    if row['J-HEPTAMER'] and row['J-HEPTAMER'] != coords['HEPTAMER']['seq']:
+    if row['J-HEPTAMER'] and row['J-HEPTAMER'] != coords['heptamer']['seq']:
         notes.append('Heptamer does not match reference')
 
-    if row['J-NONAMER'] and row['J-NONAMER'] != coords['NONAMER']['seq']:
+    if row['J-NONAMER'] and row['J-NONAMER'] != coords['nonamer']['seq']:
         notes.append('Nonamer does not match reference')
 
     try:
@@ -311,14 +311,14 @@ def process_c_gene(refname, sense, beds, notes, refs, res, row):
 
 
 v_fields = [
-    ('NONAMER', 'V-NONAMER'),
-    ('SPACER', 'V-SPACER'),
-    ('HEPTAMER', 'V-HEPTAMER'),
-    ('INTRON', 'V-INTRON'),
-    ('EXON_1', 'L-PART1'),
-    ('L-PART2', 'L-PART2'),
+    ('nonamer', 'V-NONAMER'),
+    ('spacer', 'V-SPACER'),
+    ('heptamer', 'V-HEPTAMER'),
+    ('intron', 'V-INTRON'),
+    ('exon_1', 'L-PART1'),
+    ('l-part2', 'L-PART2'),
     ('V-REGION', 'V-REGION'),
-    ('UTR', 'V-UTR')
+    ('utr', 'V-UTR')
 ]
 
 # Report too long or too short elements - indicative of indels
@@ -345,10 +345,10 @@ def process_v_gene(refname, sense, beds, notes, refs, res, row):
         res[row_el + '_CIGAR'] = row[row_el + '_CIGAR']
     #    res[row_el + '_CIGAR'] = Cigar(row[row_el + '_CIGAR'])._reverse_cigar() if sense == '-' else row[row_el + '_CIGAR']
 
-    if row['V-HEPTAMER'] and row['V-HEPTAMER'] != coords['HEPTAMER']['seq']:
+    if row['V-HEPTAMER'] and row['V-HEPTAMER'] != coords['heptamer']['seq']:
         notes.append('Heptamer does not match reference')
 
-    if row['V-NONAMER'] and row['V-NONAMER'] != coords['NONAMER']['seq']:
+    if row['V-NONAMER'] and row['V-NONAMER'] != coords['nonamer']['seq']:
         notes.append('Nonamer does not match reference')
 
     try:
@@ -510,6 +510,9 @@ def main():
         max_exon = 1
         for ex_gene in beds[refname]:
             if get_gene_type(ex_gene) == 'C':
+                print(ex_gene)
+                print(refname)
+                #print(beds)
                 max_exon = max(max_exon, int(ex_gene.split('_')[-1]))
 
         for exon_no in range(1, max_exon + 1):

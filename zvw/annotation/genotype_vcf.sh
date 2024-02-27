@@ -91,7 +91,7 @@ function get_vcf_files {
         bcftools mpileup -B -a QS -Ou -f "${reffn}" \
             --threads "${num_threads}" "$bam_file" | \
             bcftools call -m -Oz -o "${of}.vcf.gz"
-        bcftools index "${of}.vcf.gz"7
+        bcftools index "${of}.vcf.gz"
 
         bcftools mpileup -B -a QS -Ou -f "${reffn}" \
             --threads "${num_threads}" "$bam_file" | \
@@ -135,7 +135,7 @@ function get_vcf_files {
 
 #annotate the rest of them
     cat "${outd}/SV_genotype_results.txt" | while read sample IGK_SV_GT IGL_SV_GT; do
-        if [ "$IGK_SV_GT" == "0/0" ] && [ "$IGL_SV_GT" == "0/0" ]; then
+        if [ "$IGK_SV_GT" != "0/1" ] || [ "$IGL_SV_GT" != "0/1" ]; then
             of="${outd}/${sample}/${sample}"
             mkdir -p "${outd}/annotated_vcfs/${sample}"
             "${vcfanno}" "${anno_config_file}" "${of}.vcf.gz" > "${outd}/annotated_vcfs/${sample}/${sample}_annotated.vcf"

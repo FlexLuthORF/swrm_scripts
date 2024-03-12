@@ -19,9 +19,10 @@ os.makedirs(logs_dir, exist_ok=True)
 
 # Dictionary of directories and their corresponding options
 dirs = {
-    "igh": ("IGH", "igh", "+-"),
-    "igk": ("IGK", "chr2", "+-"),
-    "igl": ("IGL", "chr22", "+")
+    #"igh": ("IGH", "igh", "+-"),
+    #"igk": ("IGK", "chr2", "+-"),
+    #"igl": ("IGL", "chr22", "+"),
+    "ighc": ("IGH", "ighc", "+-")
 }
 
 def check_jobs(user):

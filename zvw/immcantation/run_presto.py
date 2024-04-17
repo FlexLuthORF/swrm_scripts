@@ -1,5 +1,6 @@
 import os
 import tempfile
+import sys
 
 
 def process_sample(sample_id, r1_gz_path, outdir):
@@ -24,8 +25,8 @@ def process_sample(sample_id, r1_gz_path, outdir):
     fastqc_dir = os.path.join(log_dir, "fastqc")
     os.makedirs(fastqc_dir, exist_ok=True)
     #if not os.path.exists(f"{sample_output_dir}/CRR_quality-pass.fastq"):
-    os.system(f"~/anaconda3/envs/multiqc/bin/fastqc -o {log_dir}/fastqc {r2_path}")
-    os.system(f"~/anaconda3/envs/multiqc/bin/fastqc -o {log_dir}/fastqc {r1_path}")
+    os.system(f"fastqc -o {log_dir}/fastqc {r2_path}")
+    os.system(f"fastqc -o {log_dir}/fastqc {r1_path}")
     if not os.path.exists(f"{sample_output_dir}/CRR_quality-pass.fastq"):      
         os.system(f"FilterSeq.py quality -s {r1_path} -q 20 --nproc 11 --outname CRR --outdir {sample_output_dir} --log {log_dir}/quality-crr.log")
 
@@ -86,8 +87,8 @@ def process_sample(sample_id, r1_gz_path, outdir):
 
 if __name__ == '__main__':
     # Keeping the first components up to the required depth and appending 'presto/{sample_id}'
-    sample_id = os.environ['SAMPLE_ID']
-    r1_gz_path = os.environ['R1_GZ_PATH']
+    sample_id = sys.argv[1]
+    r1_gz_path = sys.argv[2]
     base_dir = os.path.normpath(r1_gz_path).split(os.sep)
     outdir = "./presto"
     process_sample(sample_id, r1_gz_path, outdir)

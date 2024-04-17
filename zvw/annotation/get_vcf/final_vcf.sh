@@ -6,16 +6,13 @@ function genotype_SV_regions {
     local bam_path="$1"
     local SV_regions_1bp="$2"
     local outd="$3"
+    local sample="$4"
+
+    sample_sv_results="${outd}/${sample}_sv_genotype_results.txt"
 
     while read -r sv_region; do
         sv_name=$(echo "$sv_region" | cut -f4)
         grep -w "$sv_name" "$SV_regions_1bp" > "${sv_name}.bed"
-
-        # Check if an entry for the sample and sv_name already exists
-        if grep -q -P "^$sample\t$sv_name\t" "${outd}/SV_genotype_results.txt"; then
-            echo "Entry for $sample and $sv_name already exists. Skipping appending step."
-            continue
-        fi
 
         mpileup_output=$(samtools mpileup -l "${sv_name}.bed" -f "${reffn}" "$bam_path" | head -1)
         genotype=$(echo "$mpileup_output" | awk '{print $5}')
@@ -30,12 +27,10 @@ function genotype_SV_regions {
             genotype_label="0/1"
         fi
 
-        echo -e "$sample\t$sv_name\t$genotype_label" >> "${outd}/SV_genotype_results.txt"
+        echo -e "$sample\t$sv_name\t$genotype_label" >> "$sample_sv_results"
     done < "$SV_regions_1bp"
 }
 
-
-# Function to process VCF files
 function process_vcf {
     local bam_file="$1"
     local sample="$2"
@@ -63,29 +58,32 @@ function process_vcf {
     mkdir -p "${sample_outd}/change_to_hemi"
     mkdir -p "${outd}/annotated_vcfs/${sample}"
 
-    sv_regions_input="${SV_regions_entire}"
-    while read -r sv_region; do
-        sv_name=$(echo "$sv_region" | cut -f4)
-        sv_genotype=$(grep -P "^$sample\t$sv_name\t" "${outd}/SV_genotype_results.txt" | cut -f3)
+    sample_sv_results="${outd}/${sample}_sv_genotype_results.txt"
 
-        if [ "$sv_genotype" == "0/1" ] || [ "$sv_genotype" == "1/0" ]; then
-            grep -w "$sv_name" "${SV_regions_entire}" > "${sample_outd}/${sv_name}.bed"
-            sv_regions_input="${sample_outd}/${sv_name}.bed"
-            break
-        fi
-    done < "$SV_regions_entire"
+    # Check if the sample needs hemizygous adjustment
+    if grep -q -P "\t0/1$" "$sample_sv_results"; then
+        # The sample has at least one 0/1 genotype, so it needs adjustment
+        output_vcf="${sample_outd}/change_to_hemi/${sample}_hemi.vcf"
+        python "${changeg}" "${of}.vcf" "$sample_sv_results" \
+            "${SV_regions_entire}" "${sample}" > "${output_vcf}"
+        
+    # THIS FIXES A WEIRD CYVCF2 ISSUE WE ARE HAVING
+    # Remove lines at the start of the file that don't start with "##"
+        header_end=$(grep -n '^#CHROM' "$output_vcf" | cut -d ':' -f 1)
+        sed -i "1,${header_end}s/^[^#].*//g" "$output_vcf"
+        # Add the required header lines at the beginning of the file
+        sed -i '1i##fileformat=VCFv4.2' $output_vcf
+        sed -i '2i##FILTER=<ID=PASS,Description="All filters passed">' $output_vcf
+        sed -i '3i##bcftoolsVersion=1.19+htslib-1.19.1' $output_vcf
+        # Remove empty lines from the file
+        sed -i '/^$/d' "$output_vcf"
 
-    output_vcf="${sample_outd}/change_to_hemi/${sample}.vcf"
-
-    if [ "$sv_regions_input" != "${SV_regions_entire}" ]; then
-        python "${changeg}" "${of}.vcf" "${outd}/SV_genotype_results.txt" \
-            "${sv_regions_input}" \
-            "${output_vcf}"
         bgzip -c "${output_vcf}" > "${output_vcf}.gz"
         bcftools index "${output_vcf}.gz"
         "${vcfanno}" "${anno_config_file}" "${output_vcf}.gz" \
             > "${outd}/annotated_vcfs/${sample}/${sample}_annotated.vcf"
     else
+        # The sample doesn't need hemizygous adjustment
         "${vcfanno}" "${anno_config_file}" "${of}.vcf.gz" > "${outd}/annotated_vcfs/${sample}/${sample}_annotated.vcf"
     fi
 }
@@ -111,5 +109,5 @@ samtools index "${scratch}/$sample/${sample}.editRG.bam"
 
 bam_path="${scratch}/$sample/${sample}.editRG.bam"
 
-genotype_SV_regions "$bam_path" "$SV_regions_1bp" "$outd"
+genotype_SV_regions "$bam_path" "$SV_regions_1bp" "$outd" "$sample"
 process_vcf "$bam_path" "$sample" "$outd" "$reffn" "$num_threads" "$SV_regions_entire" "$changeg" "$anno_config_file" "$vcfanno"

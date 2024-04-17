@@ -19,7 +19,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 # Process each .tab file
 for dir_name in input_dirs:
-    log_dir = os.path.join(dir_name, "logs")
+    log_dir = os.path.join("./presto", dir_name, "logs")
     if os.path.exists(log_dir):
         for filename in os.listdir(log_dir):
             if filename.endswith(".tab"):

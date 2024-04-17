@@ -10,7 +10,8 @@ def count_running_jobs():
 
 def submit_job(sample_id, r1_gz_path, script_path):
     """Submit a job using sbatch with inline command and custom log files."""
-    log_dir = "/home/zmvanw01/projects/CW50/CW50_NS_pool3"
+    log_dir = "./logs"
+    os.makedirs(log_dir, exist_ok=True)
     stdout_log = os.path.join(log_dir, f"{sample_id}_stdout.log")
     stderr_log = os.path.join(log_dir, f"{sample_id}_stderr.log")
 
@@ -18,9 +19,9 @@ def submit_job(sample_id, r1_gz_path, script_path):
         f"sbatch "
         f"--output='{stdout_log}' "
         f"--error='{stderr_log}' "
-        f"--export=SAMPLE_ID='{sample_id}',R1_GZ_PATH='{r1_gz_path}' "
-        f"--wrap='python {script_path}'"
+        f"--wrap='python {script_path} {sample_id} {r1_gz_path}'"
     )
+    
     subprocess.run(command, shell=True)
 
 def read_sample_file(file_list_path):

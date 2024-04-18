@@ -15,26 +15,17 @@ def get_sequence_from_csv(import_csv, gene_key, contig, start, end):
     with open(import_csv, mode='r') as infile:
         reader = csv.DictReader(infile)
         for row in reader:
-            csv_start = int(float(row['REGION_start']))
-            csv_end = int(float(row['REGION_end']))
-            if row['gene'] == gene_key and row['contig'] == contig and csv_start == start and csv_end == end:
+            csv_start = int(float(row['gene_start']))
+            csv_end = int(float(row['gene_end']))
+            if row['ASC_match'] == gene_key and row['contig'] == contig and csv_start == start and csv_end == end:
                 if 'sense' in row and row['sense'] == '-':
                     reverse_comp = True
-                # Determine the correct column for the sequence based on the gene key
-                if any(substring in gene_key for substring in ['IGKV', 'IGLV', 'IGHV']):
-                    sequence_column = 'V-REGION'
-                elif any(substring in gene_key for substring in ['IGKJ', 'IGLJ', 'IGHJ']):
-                    sequence_column = 'J-REGION'
-                elif 'IGHD' in gene_key:
-                    sequence_column = 'D-REGION'
-                elif any(substring in gene_key for substring in ['IGKC', 'IGLC']):
-                    sequence_column = 'C-REGION'
-                else:
-                    continue  # Skip if no matching column is found
-                sequence = row[sequence_column]
+
+                sequence = row['seq']
                 if reverse_comp:
                     sequence = reverse_complement(sequence)
                 break
+
     return sequence
 
 # Function to count matching reads

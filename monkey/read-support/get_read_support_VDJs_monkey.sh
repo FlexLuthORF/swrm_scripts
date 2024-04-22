@@ -138,7 +138,7 @@ function get_read_support_vdj3 {
                 }' OFS=',' >> "${tmp_file}_awk_out"
 
                 python /home/zmvanw01/git_repos/swrm_scripts/monkey/read-support/match_subsequences.py "$tmp_bam" "$contig" "$start" "$end" "$gene" "$import_out" > "${tmp_file}_py_out"
-                
+                echo "gene is $gene. awk_out is $(cat "${tmp_file}_awk_out"). py_out is $(cat "${tmp_file}_py_out")"
                 paste -d ',' "${tmp_file}_awk_out" "${tmp_file}_py_out" >> "$tmp_file"
                 rm "${tmp_file}_awk_out" "${tmp_file}_py_out"
                 rm "$tmp_bam" "${tmp_bam}.bai"
@@ -148,21 +148,20 @@ function get_read_support_vdj3 {
                 combined_file="${scratch}/read_support/${sample}/output/${gene_type}/$(basename "$import_out" .csv)_combined.csv"
                 final_output="${scratch}/read_support/${sample}/output/${gene_type}/$(basename "$import_out" .csv)_with_read_support.csv"
                 mkdir -p "$(dirname "$combined_file")"
-
                 paste -d ',' "$import_out" "$tmp_file" > "$combined_file"
-                rm -f "$tmp_file"
+                #rm -f "$tmp_file"
 
-                awk -v sample="$sample" 'BEGIN{FS=OFS=","} {
-                    if (NR == 1) {
-                        print;
-                    } else {
-                        $2 = sample;
-                        $3 = sample;
-                        print;
-                    }
-                }' "$combined_file" > "$final_output"
+               # awk -v sample="$sample" 'BEGIN{FS=OFS=","} {
+                #    if (NR == 1) {
+                 #       print;
+                  #  } else {
+                   #     $2 = sample;
+                    #    $3 = sample;
+                     #   print;
+                  #  }
+               # }' "$combined_file" > "$final_output"
 
-                rm -f "$combined_file"
+               # rm -f "$combined_file"
             fi
         fi
     done

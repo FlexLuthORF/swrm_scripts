@@ -15,8 +15,9 @@ def get_sequence_from_csv(import_csv, gene_key, contig, start, end):
     with open(import_csv, mode='r') as infile:
         reader = csv.DictReader(infile)
         for row in reader:
-            csv_start = int(float(row['gene_start']))
-            csv_end = int(float(row['gene_end']))
+            csv_start = int(float(row['start']))
+            csv_end = int(float(row['end']))
+            #print(f"gene is:{gene_key}. contig is: {contig}. start is: {start}. end is {end}.")
             if row['ASC_match'] == gene_key and row['contig'] == contig and csv_start == start and csv_end == end:
                 if 'sense' in row and row['sense'] == '-':
                     reverse_comp = True

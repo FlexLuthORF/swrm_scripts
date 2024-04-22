@@ -43,7 +43,7 @@ function process_vcf {
     local vcfanno="$9"
 
     sample_outd="${outd}/${sample}"
-    mkdir -p "${sample_outd}"
+    mkdir -p "${sample_outd}"l
 
     of="${sample_outd}/${sample}"
     bcftools mpileup -B -a QS -Ou -f "${reffn}" \

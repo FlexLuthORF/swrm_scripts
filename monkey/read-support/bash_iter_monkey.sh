@@ -13,7 +13,7 @@ do
     sbatch --time=88:00:00 -p compute -o $PWD/logs/${sample}_job.txt --wrap="bash /home/zmvanw01/git_repos/swrm_scripts/monkey/read-support/get_read_support_VDJs_monkey.sh ${sample} ${assemblies_fasta} ${igh_digger} ${igk_digger} ${igl_digger} ${ccs_bam}"
 
     count=`squeue | grep $user | wc -l`
-    while [ ${count} -gt 18 ]
+    while [ ${count} -gt 15 ]
     do
         sleep 1s
         count=`squeue | grep $user | wc -l`

@@ -9,7 +9,7 @@ function run_make_ref_masked {
 }
 
 function run_map_ccs_to_pers {
-    mkdir -p ${scratch}/read_support/${sample}
+   
     outd=${scratch}/read_support/${sample}
     mkdir -p ${outd}/ccs_to_pers
 
@@ -148,8 +148,9 @@ function get_read_support_vdj3 {
                 combined_file="${scratch}/read_support/${sample}/output/${gene_type}/$(basename "$import_out" .csv)_combined.csv"
                 final_output="${scratch}/read_support/${sample}/output/${gene_type}/$(basename "$import_out" .csv)_with_read_support.csv"
                 mkdir -p "$(dirname "$combined_file")"
-                paste -d ',' "$import_out" "$tmp_file" > "$combined_file"
+                python -c "import pandas as pd; df1 = pd.read_csv('$import_out'); df2 = pd.read_csv('$tmp_file'); combined = pd.concat([df1, df2], axis=1); combined.to_csv('$final_output', index=False)"
                 #rm -f "$tmp_file"
+                
 
                # awk -v sample="$sample" 'BEGIN{FS=OFS=","} {
                 #    if (NR == 1) {
@@ -173,7 +174,20 @@ igh_digger=$3
 igk_digger=$4
 igl_digger=$5
 ccs_bam=$6
-monkey_mask_ref=//home/zmvanw01/ref/monkey/Child_17thApril2024_bothhap_IG_masked_unique.fasta
+monkey_mask_ref=/home/zmvanw01/ref/monkey/Child_17thApril2024_bothhap_IG_masked_unique.fasta
+mkdir -p ${scratch}/read_support/${sample}
+
+# Process digger option files using Python
+for digger in "$igh_digger" "$igk_digger" "$igl_digger"
+do
+    new_file_path="${scratch}/read_support/${sample}/$(basename $digger)_modified.csv"
+    python -c "import pandas as pd; df = pd.read_csv('$digger'); df['notes'] = df['notes'].str.replace(',', ';', regex=False) if 'notes' in df.columns else df; df.to_csv('$new_file_path', index=False)"
+done
+
+# Update the digger variables to point to the new files
+igh_digger="${scratch}/read_support/${sample}/$(basename $igh_digger)_modified.csv"
+igk_digger="${scratch}/read_support/${sample}/$(basename $igk_digger)_modified.csv"
+igl_digger="${scratch}/read_support/${sample}/$(basename $igl_digger)_modified.csv"
 
 #run_make_ref_masked
 run_map_ccs_to_pers

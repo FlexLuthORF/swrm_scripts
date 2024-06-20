@@ -18,7 +18,7 @@ ssh_key_path = "/home/zmvanw01/.ssh/id_rsa_hydra"
 def check_and_download_files(dir_path, file_types):
     for file_type in file_types:
         # List files on the remote server
-        list_command = f"ssh -i {ssh_key_path} zmvanw01@bigdata.hpc.louisville.edu 'find {dir_path} -type f -name \"*.{file_type}\"'"
+        list_command = f"ssh -i {ssh_key_path} zachvanwinkle@136.165.158.135 'find {dir_path} -type f -name \"*.{file_type}\"'"
         result = subprocess.run(list_command, shell=True, capture_output=True, text=True)
         files = result.stdout.strip().split("\n")
         
@@ -26,7 +26,7 @@ def check_and_download_files(dir_path, file_types):
         for file in files:
             if 'fail' in file.lower() and not args.failed:
                 continue
-            download_command = f"scp -i {ssh_key_path} zmvanw01@bigdata.hpc.louisville.edu:{file} ."
+            download_command = f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.135:{file} ."
             subprocess.run(download_command, shell=True)
 
 # Function to rename and move files
@@ -48,7 +48,7 @@ def rename_and_move_files(base_filename, bio_sample_name):
     return paths
 
 # Iterate over directories
-ssh_command = f"ssh -i {ssh_key_path} zmvanw01@bigdata.hpc.louisville.edu 'ls -d {args.base_directory}/*/'"
+ssh_command = f"ssh -i {ssh_key_path} zachvanwinkle@136.165.158.135 'ls -d {args.base_directory}/*/'"
 result = subprocess.run(ssh_command, shell=True, capture_output=True, text=True)
 directories = result.stdout.strip().split("\n")
 
@@ -75,3 +75,4 @@ for dir_path in directories:
 
 # Close TSV file
 tsv_file.close()
+os.system("sed -i 's/\\r//g' info.tsv")

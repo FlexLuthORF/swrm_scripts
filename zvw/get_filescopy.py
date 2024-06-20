@@ -8,26 +8,30 @@ import shutil
 # Argument parser setup
 parser = argparse.ArgumentParser(description='Run SCP commands and extract information.')
 parser.add_argument('base_directory', help='Base directory path for SCP command.')
-parser.add_argument('--failed', action='store_true', help='Include failed files in the download.')
 args = parser.parse_args()
 
 # SSH Key path
 ssh_key_path = "/home/zmvanw01/.ssh/id_rsa_hydra"
 
-# Function to check and download files based on the 'fail' keyword
-def check_and_download_files(dir_path, file_types):
-    for file_type in file_types:
-        # List files on the remote server
-        list_command = f"ssh -i {ssh_key_path} zmvanw01@bigdata.hpc.louisville.edu 'find {dir_path} -type f -name \"*.{file_type}\"'"
-        result = subprocess.run(list_command, shell=True, capture_output=True, text=True)
-        files = result.stdout.strip().split("\n")
-        
-        # Filter and download files
-        for file in files:
-            if 'fail' in file.lower() and not args.failed:
-                continue
-            download_command = f"scp -i {ssh_key_path} zmvanw01@bigdata.hpc.louisville.edu:{file} ."
-            subprocess.run(download_command, shell=True)
+# SSH command to list directories
+ssh_command = f"ssh -i {ssh_key_path} zachvanwinkle@136.165.158.10 'ls -d {args.base_directory}/*/'"
+result = subprocess.run(ssh_command, shell=True, capture_output=True, text=True)
+
+# Parse output to get directory names
+directories = result.stdout.strip().split("\n")
+
+# Initialize TSV writer
+tsv_file = open('info.tsv', 'w', newline='')
+tsv_writer = csv.writer(tsv_file, delimiter='\t')
+
+# Special case: handle files in base_directory
+scp_base = [
+    f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{args.base_directory}/*.bam .",
+    f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{args.base_directory}/*.pbi .",
+    f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{args.base_directory}/*.xml ."
+]
+for cmd in scp_base:
+    subprocess.run(cmd, shell=True)
 
 # Function to rename and move files
 def rename_and_move_files(base_filename, bio_sample_name):
@@ -48,16 +52,16 @@ def rename_and_move_files(base_filename, bio_sample_name):
     return paths
 
 # Iterate over directories
-ssh_command = f"ssh -i {ssh_key_path} zmvanw01@bigdata.hpc.louisville.edu 'ls -d {args.base_directory}/*/'"
-result = subprocess.run(ssh_command, shell=True, capture_output=True, text=True)
-directories = result.stdout.strip().split("\n")
-
-# Initialize TSV writer
-tsv_file = open('info.tsv', 'w', newline='')
-tsv_writer = csv.writer(tsv_file, delimiter='\t')
-
 for dir_path in directories:
-    check_and_download_files(dir_path, ['bam', 'bam.pbi', 'xml'])
+    # SCP commands
+    scp_bam = f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{dir_path}/*bam ."
+    scp_bam_pbi = f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{dir_path}/*bam.pbi ."
+    scp_xml = f"scp -i {ssh_key_path} zachvanwinkle@136.165.158.10:{dir_path}/*.xml ."
+    
+    # Execute SCP commands
+    subprocess.run(scp_bam, shell=True)
+    subprocess.run(scp_bam_pbi, shell=True)
+    subprocess.run(scp_xml, shell=True)
 
     # Parse XML files and rename & move associated files
     for xml_file in os.listdir('.'):
@@ -71,7 +75,7 @@ for dir_path in directories:
                 if 'bam' in paths:
                     tsv_writer.writerow([bio_sample_name, paths['bam']])
             except Exception as e:
-                print(f"Error processing {xml_file}: {e}")
+                bio_sample_name = "N/A"
 
 # Close TSV file
 tsv_file.close()

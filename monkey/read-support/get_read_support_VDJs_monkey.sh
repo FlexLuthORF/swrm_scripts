@@ -92,7 +92,11 @@ function get_read_support_vdj3 {
                 contig="${line[$contig_col]}"
                 start=$(echo "${line[$start_col]}" | awk '{printf "%.0f", $1}')
                 end=$(echo "${line[$end_col]}" | awk '{printf "%.0f", $1}')
-                
+                if [ $start -ge $end ]; then
+                    temp=$start
+                    start=$end
+                    end=$temp
+                fi
                 gene="${line[$gene_col]}"
                 region="${contig}:${start}-${end}"
 
